@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Registered student information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Student full name" },
+        "phone": { "type": "string", "description": "Student phone number" },
+        "address": { "type": "string", "description": "Student address" },
+        "parentPhone": { "type": "string", "description": "Parent or guardian phone number" },
+        "grade": { "type": "string", "description": "Class or grade" },
+        "courseIds": { "type": "array", "items": { "type": "string" }, "description": "List of enrolled course IDs" },
+        "totalFees": { "type": "number", "description": "Total fees for enrolled courses" },
+        "pendingFees": { "type": "number", "description": "Remaining fees to be paid" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone", "grade", "courseIds"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Subject or course information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Course name" },
+        "fee": { "type": "number", "description": "Course fee" }
+      },
+      "required": ["name", "fee"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Fee payment record",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "ID of the student" },
+        "amount": { "type": "number", "description": "Amount paid" },
+        "date": { "type": "string", "format": "date-time" },
+        "details": { "type": "string", "description": "Transaction details" },
+        "invoiceId": { "type": "string", "description": "Associated invoice ID" }
+      },
+      "required": ["studentId", "amount", "date"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Generated invoice for payment",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "ID of the student" },
+        "studentName": { "type": "string" },
+        "courses": { "type": "array", "items": { "type": "object" } },
+        "amountPaid": { "type": "number" },
+        "totalFees": { "type": "number" },
+        "status": { "type": "string", "enum": ["Full", "Partial"] },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "amountPaid", "date"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Collection of registered students"
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Collection of available courses"
+    },
+    "/payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Collection of payment records"
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Collection of generated invoices"
+    }
+  }
+}

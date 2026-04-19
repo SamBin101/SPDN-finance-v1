@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: students
+    // Fields: name, phone, address, parentPhone, grade, courseIds, totalFees, pendingFees, createdAt
+    //
+    // Collection: courses
+    // Fields: name, fee
+    //
+    // Collection: payments
+    // Fields: studentId, amount, date, details, invoiceId
+    //
+    // Collection: invoices
+    // Fields: studentId, studentName, courses, amountPaid, totalFees, status, date
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          (request.auth.token.email == "shabbir.bindulogic2@gmail.com")
+        );
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /students/{studentId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /courses/{courseId} {
+      allow read: if true; // Courses are public information
+      allow write: if isAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update, delete: if false; // Payments should be immutable
+    }
+
+    match /invoices/{invoiceId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update, delete: if false; // Invoices should be immutable
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+  }
+}
